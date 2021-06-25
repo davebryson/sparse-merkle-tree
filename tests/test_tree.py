@@ -80,3 +80,23 @@ def test_proofs():
 
     proof1 = tree.prove(b"nope")
     assert not verify_proof(proof1, root, b"np", b"np1")
+
+
+"""
+def test_benchmarks(benchmark):
+    size = 10
+    data = [
+        (bytes("key{}".format(i), "utf-8"), bytes("value{}".format(i), "utf-8"))
+        for i in range(size)
+    ]
+    # tree = SparseMerkleTree()
+    result = benchmark(build, data)
+    assert result
+
+
+def build(data):
+    tree = SparseMerkleTree()
+    for k, v in data:
+        tree.update(k, v)
+    return True
+"""

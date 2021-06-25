@@ -35,6 +35,8 @@ def parse_node(data):
 
 
 def digest(data):
+    # we have to create a new instance has hashlib doesn't
+    # have a 'reset' for updates
     hasher = sha256()
     hasher.update(data)
     return hasher.digest()

@@ -30,6 +30,12 @@ class SparseMerkleTree:
         self.db = db
         self.root = PLACEHOLDER
 
+    def root_as_bytes(self):
+        return self.root
+
+    def root_as_hex(self):
+        return "0x{}".format(self.root.hex())
+
     def get(self, key):
         """
         Get a value for the given key using the current root.
