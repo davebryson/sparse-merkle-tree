@@ -97,7 +97,7 @@ class SparseMerkleTree:
 
     def update_for_root(self, key, value, root):
         path = digest(key)
-        side_nodes, old_leafhash, old_leafdata, sibdata = self._get_sidenodes(
+        side_nodes, old_leafhash, old_leafdata, _sibdata = self._get_sidenodes(
             path, root
         )
 
@@ -134,6 +134,10 @@ class SparseMerkleTree:
         return self._proof_for_root(key, root, True)
 
     def _get_sidenodes(self, path, root, with_sibling_data=False):
+        """
+        Walk the tree down from the root, gathering neighbor nodes
+        on the way to leaf for the given key (path)
+        """
         side_nodes = []
 
         if root == PLACEHOLDER:
@@ -205,28 +209,12 @@ class SparseMerkleTree:
         offset = DEPTH - len(side_nodes)
         for i in range(DEPTH):
             side_node = bytes(32)
-
-            """
-            If i <= offset OR there are no sidenodes in the list at this index...
-            When could there be sidenode in the list at this index?
-            Ex: total DEPTH is 20, and there are 5 sidenodes...
-            Offset = 15
-            when i reached 15 and beyond, the first check fails, but if we only 
-            have a total 5
-
-            Will this check ever fail: get_side_node(i - offset, side_nodes) == None??
-            The original if state below add this call:
-              or get_side_node(i - offset, side_nodes) == None
-
-            Input: i, offset, common_prefix
-            """
             if (i - offset) < 0:
                 if common_prefix_count != DEPTH and common_prefix_count > DEPTH - 1 - i:
                     side_node = PLACEHOLDER
                 else:
                     continue
             else:
-                # print("got a sidenode at {:}".format(i))
                 side_node = side_nodes[i - offset]
 
             if get_bit(DEPTH - 1 - i, path) == RIGHT:
@@ -243,12 +231,10 @@ class SparseMerkleTree:
     def _delete_with_sidenodes(self, path, sidenodes, old_leafhash, old_leafdata):
         if old_leafhash == PLACEHOLDER:
             # This key is already empty as it is a placeholder; return an error
-            print("OLDLEAF")
             return (None, KeyAlreadyEmpty)
 
         if parse_leaf(old_leafdata)[0] != path:
             # This key is already empty as a different key was found its place; return an error.
-            print("PATH")
             return (None, KeyAlreadyEmpty)
 
         current_hash = None

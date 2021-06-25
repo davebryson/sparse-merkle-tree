@@ -56,7 +56,6 @@ def verify_proof(proof, root, key, value):
         else:
             actual_path, value_hash = parse_leaf(proof.non_membership_leafdata)
             if actual_path == path:
-                print("PATH")
                 return False
             current_hash, _current_data = create_leaf(actual_path, value_hash)
     else:
