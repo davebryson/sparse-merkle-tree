@@ -1,5 +1,6 @@
 """
-Sparse Merkle Tree
+Sparse Merkle Tree.
+A Python port of: https://github.com/celestiaorg/smt
 """
 from smt.proof import SparseMerkleProof
 from .utils import (
@@ -278,7 +279,7 @@ class SparseMerkleTree:
     def _proof_for_root(self, key, root, is_updatable):
         path = digest(key)
         side_nodes, old_leafhash, old_leafdata, sibdata = self._get_sidenodes(
-            path, self.root
+            path, root, is_updatable
         )
 
         non_empty_sides = []
@@ -293,7 +294,3 @@ class SparseMerkleTree:
                 non_membership_leafdata = old_leafdata
 
         return SparseMerkleProof(non_empty_sides, non_membership_leafdata, sibdata)
-
-
-def verify_proof():
-    pass
