@@ -2,7 +2,8 @@
 Sparse Merkle Tree.
 A Python port of: https://github.com/celestiaorg/smt
 """
-from smt.proof import SparseMerkleProof
+from .proof import SparseMerkleProof
+from .store import MemoryStore, DatabaseAPI
 from .utils import (
     create_node,
     create_leaf,
@@ -25,17 +26,22 @@ InvalidKey = 2
 
 
 class SparseMerkleTree:
-    def __init__(self):
-        self.db = {}
+    def __init__(self, db: DatabaseAPI = MemoryStore()):
+        self.db = db
         self.root = PLACEHOLDER
 
     def get(self, key):
+        """
+        Get a value for the given key using the current root.
+        """
         return self.get_for_root(key, self.root)
 
     def get_for_root(self, key, root):
         """
-        Get a value for a given key
+        Get a value for a given key using the given root.  You can lookup values
+        for keys for past roots
         """
+
         if root == PLACEHOLDER:
             return DEFAULTVALUE
 
@@ -43,7 +49,7 @@ class SparseMerkleTree:
         current_hash = root
 
         for i in range(0, DEPTH):
-            current_data = self.db.get(current_hash, None)
+            current_data = self.db.get(current_hash)
             if current_data == None:
                 return None
             if is_leaf(current_data):
@@ -51,7 +57,7 @@ class SparseMerkleTree:
                 if p != path:
                     return DEFAULTVALUE
 
-                value = self.db.get(value_hash, None)
+                value = self.db.get(value_hash)
                 return value
 
             left, right = parse_node(current_data)
@@ -127,7 +133,7 @@ class SparseMerkleTree:
         if root == PLACEHOLDER:
             return (side_nodes, PLACEHOLDER, None, None)
 
-        current_data = self.db.get(root, None)
+        current_data = self.db.get(root)
         if current_data == None:
             return (None, None, None, None)
         elif is_leaf(current_data):
@@ -151,7 +157,7 @@ class SparseMerkleTree:
                 current_data = None
                 break
 
-            current_data = self.db.get(node_hash, None)
+            current_data = self.db.get(node_hash)
             if current_data == None:
                 return (None, None, None, None)
             elif is_leaf(current_data):
@@ -168,10 +174,10 @@ class SparseMerkleTree:
         self, path, value, side_nodes, old_leafhash, old_leafdata
     ):
         value_hash = digest(value)
-        self.db[value_hash] = value
+        self.db.put(value_hash, value)  # = value
 
         current_hash, current_data = create_leaf(path, value_hash)
-        self.db[current_hash] = current_data
+        self.db.put(current_hash, current_data)  # = current_data
         current_data = current_hash
 
         common_prefix_count = 0
@@ -187,7 +193,7 @@ class SparseMerkleTree:
             else:
                 current_hash, current_data = create_node(current_data, old_leafhash)
 
-            self.db[current_hash] = current_data
+            self.db.put(current_hash, current_data)  # = current_data
             current_data = current_hash  # HEREE!!!
 
         offset = DEPTH - len(side_nodes)
@@ -222,7 +228,7 @@ class SparseMerkleTree:
             else:
                 current_hash, current_data = create_node(current_data, side_node)
 
-            self.db[current_hash] = current_data
+            self.db.put(current_hash, current_data)  # = current_data
             current_data = current_hash
 
         return current_hash
@@ -247,7 +253,7 @@ class SparseMerkleTree:
                 continue
 
             if current_data == None:
-                side_node_value = self.db[sn]
+                side_node_value = self.db.get(sn)
                 if side_node_value == None:
                     return (None, InvalidKey)
                 if is_leaf(side_node_value):
@@ -268,7 +274,7 @@ class SparseMerkleTree:
             else:
                 current_hash, current_data = create_node(current_data, sn)
 
-            self.db[current_hash] = current_data
+            self.db.put(current_hash, current_data)  # = current_data
             current_data = current_hash
 
         if current_hash == None:
