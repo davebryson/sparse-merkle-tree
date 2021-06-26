@@ -73,6 +73,9 @@ def test_proofs():
     assert tree.update(b"c", b"c1")
     assert tree.update(b"d", b"d1")
     assert tree.update(b"e", b"e1")
+
+    assert tree.delete(b"c")
+
     root = tree.update(b"f", b"f1")
 
     proof = tree.prove(b"d")
@@ -81,22 +84,34 @@ def test_proofs():
     proof1 = tree.prove(b"nope")
     assert not verify_proof(proof1, root, b"np", b"np1")
 
+    proof2 = tree.prove(b"c")
+    assert verify_proof(proof2, root, b"c", DEFAULTVALUE)
 
-"""
-def test_benchmarks(benchmark):
-    size = 10
+
+def test_bulk():
+    import secrets
+    import random
+
+    size = 200
     data = [
-        (bytes("key{}".format(i), "utf-8"), bytes("value{}".format(i), "utf-8"))
-        for i in range(size)
+        (
+            secrets.token_bytes(random.randint(10, 30)),
+            secrets.token_bytes(random.randint(30, 500)),
+        )
+        for _ in range(size)
     ]
-    # tree = SparseMerkleTree()
-    result = benchmark(build, data)
-    assert result
 
+    assert size == len(data)
 
-def build(data):
     tree = SparseMerkleTree()
     for k, v in data:
-        tree.update(k, v)
-    return True
-"""
+        assert tree.update(k, v)
+
+    for k, v in data:
+        assert v == tree.get(k)
+
+    root = tree.root
+    for k, v in data:
+        proof = tree.prove(k)
+        assert proof.sanity_check()
+        assert verify_proof(proof, root, k, v)
