@@ -2,6 +2,7 @@
 Sparse Merkle Tree.
 A Python port of: https://github.com/celestiaorg/smt
 """
+
 from .proof import SparseMerkleProof
 from .store import MemoryStore, DatabaseAPI
 from .utils import (

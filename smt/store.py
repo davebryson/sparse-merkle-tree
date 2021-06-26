@@ -1,5 +1,5 @@
 """
-
+Database API
 """
 from abc import ABC, abstractmethod
 from typing import Union
@@ -9,6 +9,10 @@ BytesOrNone = Union[bytes, None]
 
 
 class DatabaseAPI(ABC):
+    """
+    Basic 'interface' expected by the SparseMerkle Tree for storage
+    """
+
     @abstractmethod
     def get(self, key: bytes) -> BytesOrNone:
         """
@@ -41,6 +45,10 @@ class DatabaseAPI(ABC):
 
 
 class MemoryStore(DatabaseAPI):
+    """
+    In-memory implementation
+    """
+
     def __init__(self):
         self.store = {}
 

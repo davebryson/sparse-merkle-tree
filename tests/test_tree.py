@@ -89,20 +89,7 @@ def test_proofs():
 
 
 def test_bulk():
-    import secrets
-    import random
-
-    size = 200
-    data = [
-        (
-            secrets.token_bytes(random.randint(10, 30)),
-            secrets.token_bytes(random.randint(30, 500)),
-        )
-        for _ in range(size)
-    ]
-
-    assert size == len(data)
-
+    data = make_random_data()
     tree = SparseMerkleTree()
     for k, v in data:
         assert tree.update(k, v)
@@ -115,3 +102,16 @@ def test_bulk():
         proof = tree.prove(k)
         assert proof.sanity_check()
         assert verify_proof(proof, root, k, v)
+
+
+def make_random_data(size=500):
+    import secrets
+    import random
+
+    return [
+        (
+            secrets.token_bytes(random.randint(10, 30)),
+            secrets.token_bytes(random.randint(30, 500)),
+        )
+        for _ in range(size)
+    ]

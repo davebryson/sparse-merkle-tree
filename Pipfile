@@ -8,7 +8,6 @@ name = "pypi"
 [dev-packages]
 black = "*"
 pytest = "*"
-pytest-benchmark = "*"
 
 [requires]
 python_version = "3.9"
