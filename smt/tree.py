@@ -27,9 +27,9 @@ InvalidKey = 2
 
 
 class SparseMerkleTree:
-    def __init__(self, db: DatabaseAPI = MemoryStore()):
+    def __init__(self, db: DatabaseAPI = MemoryStore(), root=PLACEHOLDER):
         self.db = db
-        self.root = PLACEHOLDER
+        self.root = root
 
     def root_as_bytes(self):
         return self.root
