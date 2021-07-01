@@ -25,8 +25,9 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.9",
     ],
-    keywords="blockchain tendermint abci",
-    packages=find_packages(exclude=["tests"]),
+    keywords="merkle tree",
+    packages=["smt"],
     install_requires=[],
+    test_require=["pytest>=6.2.4"],
     python_requires=">=3.9",
 )

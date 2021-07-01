@@ -18,5 +18,3 @@ assert b"a1" == tree.get(b"a")
 proof = tree.prove(b"a")
 assert verify_proof(proof, root, b"a", b"a1")
 ```
-
-**...more to come...**
