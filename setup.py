@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup, find_packages
+from setuptools import setup
 from codecs import open
 from os import path
 
@@ -11,7 +11,7 @@ with open(path.join(DIR, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="smt",
+    name="sparse-merkle-tree",
     version="0.1.0",
     description="A Sparse Merkle Tree for a key/value map",
     long_description=long_description,

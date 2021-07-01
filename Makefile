@@ -3,7 +3,10 @@ test:
 
 clean:
 	rm -Rf dist/
-	rm -Rf smt.egg-info
+	rm -Rf sparse_merkle_tree.egg-info
+
+localegg:
+	pipenv install --editable .
 
 # PyPi package deploy
 # 1. build-dist
