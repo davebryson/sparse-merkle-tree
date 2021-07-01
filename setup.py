@@ -12,11 +12,11 @@ with open(path.join(DIR, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="sparse-merkle-tree",
-    version="0.1.0",
+    version="0.2.0",
     description="A Sparse Merkle Tree for a key/value map",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/davebryson/spares-merkle-tree",
+    url="https://github.com/davebryson/sparse-merkle-tree",
     author="Dave Bryson",
     license="Apache 2.0",
     classifiers=[
