@@ -25,7 +25,8 @@ class SparseMerkleProof:
         if (
             len(self.sidenodes) > DEPTH
             or self.non_membership_leafdata != None
-            and len(self.non_membership_leafdata) != len(LEAF) + KEYSIZE + KEYSIZE
+            and len(self.non_membership_leafdata)
+            != len(LEAF) + KEYSIZE + KEYSIZE
         ):
             return False
 
@@ -48,7 +49,6 @@ def verify_proof(proof, root, key, value):
         return False
 
     current_hash = None
-    # current_data = None
 
     if value == DEFAULTVALUE:
         if not proof.non_membership_leafdata:
