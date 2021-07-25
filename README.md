@@ -11,10 +11,13 @@ This is a Python port of the great work here: [celestiaorg](https://github.com/c
 
 ```python
 tree = SparseMerkleTree()
-root = tree.update(b"a", b"a1")
 
+root = tree.update(b"a", b"a1")
 assert b"a1" == tree.get(b"a")
 
 proof = tree.prove(b"a")
 assert verify_proof(proof, root, b"a", b"a1")
+
+tree.delete(b"a")
+assert b"" == tree.get(b"a")
 ```
