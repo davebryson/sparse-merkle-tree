@@ -82,17 +82,27 @@ def test_proofs():
 def test_bulk():
     data = make_random_data()
     tree = SparseMerkleTree()
+    # Add data
     for k, v in data:
         assert tree.update(k, v)
 
+    # Check it's there
     for k, v in data:
         assert v == tree.get(k)
 
+    # Check proofs
     root = tree.root
     for k, v in data:
         proof = tree.prove(k)
         assert proof.sanity_check()
         assert verify_proof(proof, root, k, v)
+
+    # Delete it
+    for k, _ in data:
+        assert tree.delete(k) != None
+
+    # Check random value is deleted
+    assert b"" == tree.get(data[4][0])
 
 
 def make_random_data(size=1000):
