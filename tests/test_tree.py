@@ -105,7 +105,7 @@ def test_bulk():
     assert b"" == tree.get(data[4][0])
 
 
-def make_random_data(size=1000):
+def make_random_data(size=500):
     import secrets
     import random
 
