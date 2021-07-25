@@ -6,18 +6,18 @@ clean:
 	rm -Rf sparse_merkle_tree.egg-info
 
 dev: 
-	pip install --editable .
+	pip install --editable '.[dev]'
 
 # PyPi package deploy
 # 1. build-dist
 # 2. test-pypi
 # 3. update-pypi
 build-dist:
-	python setup.py sdist
+	python -m build
 
 # install twine with pipenv install -d
-test-pypi:
+publish-test:
 	twine upload dist/* --repository testpypi
 
-update-pypi:
+publish:
 	twine upload dist/* --repository pypi

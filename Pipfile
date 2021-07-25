@@ -9,6 +9,7 @@ name = "pypi"
 black = "*"
 pytest = "*"
 twine = "*"
+build = "*"
 
 [requires]
 python_version = "3.9"
