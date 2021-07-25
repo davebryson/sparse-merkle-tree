@@ -1,11 +1,10 @@
 from smt.tree import SparseMerkleTree
 from smt.utils import DEFAULTVALUE, PLACEHOLDER
 from smt.proof import verify_proof
-from smt.store import MemoryStore
 
 
 def test_tree_basics():
-    tree = SparseMerkleTree(MemoryStore(), MemoryStore())
+    tree = SparseMerkleTree()
 
     assert DEFAULTVALUE == tree.get(b"c")
 
@@ -60,7 +59,7 @@ def test_tree_basics():
 
 
 def test_proofs():
-    tree = SparseMerkleTree(MemoryStore(), MemoryStore())
+    tree = SparseMerkleTree()
     assert tree.update(b"b", b"b1")
     assert tree.update(b"c", b"c1")
     assert tree.update(b"d", b"d1")
@@ -82,7 +81,7 @@ def test_proofs():
 
 def test_bulk():
     data = make_random_data()
-    tree = SparseMerkleTree(MemoryStore(), MemoryStore())
+    tree = SparseMerkleTree()
     for k, v in data:
         assert tree.update(k, v)
 

@@ -4,7 +4,7 @@ A Python port of: https://github.com/celestiaorg/smt
 """
 
 from .proof import SparseMerkleProof
-from .store import MapStore, BytesOrNone, MemoryStore, DatabaseAPI
+from .store import TreeMapStore, BytesOrNone, TreeMemoryStore
 from .utils import (
     create_node,
     create_leaf,
@@ -30,18 +30,15 @@ InvalidKey = 2
 
 class SparseMerkleTree:
     root: bytes
-    nodes: MapStore
-    values: MapStore
+    store: TreeMapStore
 
     def __init__(
         self,
-        nodes: MapStore,
-        values: MapStore,
+        store: TreeMapStore = TreeMemoryStore(),
         root=PLACEHOLDER,
     ):
         self.root = root
-        self.nodes = nodes
-        self.values = values
+        self.store = store
 
     def root_as_bytes(self) -> bytes:
         return self.root
@@ -57,7 +54,7 @@ class SparseMerkleTree:
             return DEFAULTVALUE
 
         path = digest(key)
-        val = self.values.get(path)
+        val = self.store.get_value(path)
         if not val:
             return DEFAULTVALUE
 
@@ -88,7 +85,7 @@ class SparseMerkleTree:
             )
             if err and err == KeyAlreadyEmpty:
                 return root
-            if not self.values.delete(path):
+            if not self.store.delete_value(path):
                 return None
             return new_root
         else:
@@ -114,9 +111,6 @@ class SparseMerkleTree:
     def prove_updatable_for_root(self, key, root):
         return self._proof_for_root(key, root, True)
 
-    # returns side_nodes, root, current_data, sibdata
-    # needs to return:
-    # side_nodes[], path_nodes[], current_data, sibdata
     def _get_sidenodes(
         self, path: bytes, root: bytes, with_sibling_data=False
     ) -> Tuple[List[bytes], List[bytes], bytes, bytes]:
@@ -133,7 +127,7 @@ class SparseMerkleTree:
         if root == PLACEHOLDER:
             return (side_nodes, path_nodes, None, None)
 
-        current_data = self.nodes.get(root)
+        current_data = self.store.get_node(root)
         if current_data == None:
             return (None, None, None, None)
         elif is_leaf(current_data):
@@ -158,14 +152,14 @@ class SparseMerkleTree:
                 current_data = None
                 break
 
-            current_data = self.nodes.get(node_hash)
+            current_data = self.store.get_node(node_hash)
             if current_data == None:
                 return (None, None, None, None)
             elif is_leaf(current_data):
                 break
 
         if with_sibling_data:
-            sibdata = self.nodes.get(side_node)
+            sibdata = self.store.get_node(side_node)
             if not sibdata:
                 return (None, None, None, None)
 
@@ -182,7 +176,7 @@ class SparseMerkleTree:
         value_hash = digest(value)
         current_hash, current_data = create_leaf(path, value_hash)
 
-        self.nodes.put(current_hash, current_data)  # = current_data
+        self.store.set_node(current_hash, current_data)  # = current_data
         current_data = current_hash
 
         common_prefix_count = 0
@@ -203,17 +197,17 @@ class SparseMerkleTree:
                     current_data, path_nodes[0]
                 )
 
-            self.nodes.put(current_hash, current_data)  # = current_data
+            self.store.set_node(current_hash, current_data)  # = current_data
             current_data = current_hash
         elif old_value_hash != None:
             if old_value_hash == value_hash:
                 return self.root
 
-            self.nodes.delete(path_nodes[0])
-            self.values.delete(path)
+            self.store.delete_node(path_nodes[0])
+            self.store.delete_value(path)
 
         for val in path_nodes[1:]:
-            self.nodes.delete(val)
+            self.store.delete_node(val)
 
         offset = DEPTH - len(side_nodes)
         for i in range(DEPTH):
@@ -238,10 +232,10 @@ class SparseMerkleTree:
                     current_data, side_node
                 )
 
-            self.nodes.put(current_hash, current_data)  # = current_data
+            self.store.set_node(current_hash, current_data)  # = current_data
             current_data = current_hash
 
-        self.values.put(path, value)
+        self.store.set_value(path, value)
         return current_hash
 
     def _delete_with_sidenodes(self, path, sidenodes, path_nodes, old_leafdata):
@@ -255,7 +249,7 @@ class SparseMerkleTree:
 
         # Remove all orphans
         for val in path_nodes:
-            if not self.nodes.delete(val):
+            if not self.store.delete_node(val):
                 return (None, None)
 
         current_hash = None
@@ -266,7 +260,7 @@ class SparseMerkleTree:
                 continue
 
             if current_data == None:
-                side_node_value = self.nodes.get(sn)
+                side_node_value = self.store.get_node(sn)
                 if side_node_value == None:
                     return (None, InvalidKey)
                 if is_leaf(side_node_value):
@@ -287,7 +281,7 @@ class SparseMerkleTree:
             else:
                 current_hash, current_data = create_node(current_data, sn)
 
-            self.nodes.put(current_hash, current_data)  # = current_data
+            self.store.set_node(current_hash, current_data)  # = current_data
             current_data = current_hash
 
         if current_hash == None:
