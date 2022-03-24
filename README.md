@@ -21,3 +21,6 @@ assert verify_proof(proof, root, b"a", b"a1")
 tree.delete(b"a")
 assert b"" == tree.get(b"a")
 ```
+
+
+
