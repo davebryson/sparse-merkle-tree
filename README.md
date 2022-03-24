@@ -22,5 +22,3 @@ tree.delete(b"a")
 assert b"" == tree.get(b"a")
 ```
 
-
-
