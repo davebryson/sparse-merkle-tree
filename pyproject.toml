@@ -1,7 +1,7 @@
 [project]
 name = "sparse-merkle-tree"
 description = "A Sparse Merkle Tree for a key/value map"
-authors = { name = "Dave Bryson" }
+authors = [{ name = "Dave Bryson" }]
 readme = "README.md"
 requires-python = ">= 3.9"
 license = { file = "LICENSE" }
@@ -12,10 +12,7 @@ classifiers = [
     'Programming Language :: Python :: 3.9',
 ]
 keywords = ['merkletree']
-dependencies = [
-    'anytree',
-    "requests",
-]
+dependencies = []
 dynamic = ["version"]
 
 [project.optional-dependencies]
@@ -33,7 +30,7 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 
 [tool.setuptools]
-include_package_data = true
+include-package-data = true
 
 [tool.setuptools.packages.find]
 
