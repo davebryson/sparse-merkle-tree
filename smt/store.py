@@ -1,141 +1,114 @@
 """
 Database API
 """
-from typing import Union
-from abc import ABC, abstractmethod
 
+from abc import ABC, abstractmethod
+from typing import Union
 
 BytesOrNone = Union[bytes, None]
 
 
+class TreeMapNodes(ABC):
+    @abstractmethod
+    def __getitem__(self, key: bytes) -> BytesOrNone:
+        """
+        :param key: path to node
+        :return: node if the key exists, or `None` if not found
+        """
+
+        pass
+
+    @abstractmethod
+    def __setitem__(self, key: bytes, value: bytes) -> bool:
+        """
+        Put a node in the store, overwriting an existing path.
+
+        :param key: path to node
+        :param value: value to place within tree
+        :return: whether operation was successful
+        """
+
+        pass
+
+    @abstractmethod
+    def delete(self, key: bytes) -> bool:
+        """
+        :return: whether delete was successful
+        """
+
+        pass
+
+
 class TreeMapStore(ABC):
+    nodes: TreeMapNodes
+
     @abstractmethod
-    def get_value(self, key: bytes) -> BytesOrNone:
+    def __getitem__(self, key: bytes) -> BytesOrNone:
         """
-        Get a leaf value for the given key.
-        Returns:
-            - Value if the key exists, or
-            - None if it's not found
+        :param key: path to node
+        :return: leaf value if the key exists, or `None` if not found
         """
+
         pass
 
     @abstractmethod
-    def get_node(self, key: bytes) -> BytesOrNone:
+    def __setitem__(self, key: bytes, value: bytes) -> bool:
         """
-        Get a node for the given key.
-        Returns:
-            - Node if the key exists, or
-            - None if it's not found
+        Put a key-value pair in the store as a leaf node, overwriting an existing path.
+
+        :param key: path to node
+        :param value: value to place within tree
+        :return: whether operation was successful
         """
+
         pass
 
     @abstractmethod
-    def set_value(self, key: bytes, value: bytes) -> bool:
+    def delete(self, key: bytes) -> bool:
         """
-        Put a leaf key,value in the store. Overwrite the value for existing keys.
-        Returns:
-            - True if the write succeeds
-            - False if it doesn't
+        :return: whether delete was successful
         """
-        pass
 
-    @abstractmethod
-    def set_node(self, key: bytes, value: bytes) -> bool:
-        """
-        Put a node value in the store. Overwrite the value for existing keys.
-        Returns:
-            - True if the write succeeds
-            - False if it doesn't
-        """
-        pass
-
-    @abstractmethod
-    def delete_value(self, key) -> bool:
-        """
-        Delete a leaf value
-         Returns:
-            - True if the delete succeeds
-            - False if it doesn't
-        """
-        pass
-
-    @abstractmethod
-    def delete_node(self, key) -> bool:
-        """
-        Delete a node
-         Returns:
-            - True if the delete succeeds
-            - False if it doesn't
-        """
         pass
 
 
-class TreeMemoryStore(TreeMapStore):
-    nodes: dict
-    values: dict
+class TreeMemoryNodes(TreeMapNodes):
+    nodes = dict
 
     def __init__(self):
         self.nodes = {}
-        self.values = {}
 
-    def get_value(self, key: bytes) -> BytesOrNone:
-        """
-        Get a leaf value for the given key.
-        Returns:
-            - Value if the key exists, or
-            - None if it's not found
-        """
-        return self.values.get(key, None)
-
-    def get_node(self, key: bytes) -> BytesOrNone:
-        """
-        Get a node for the given key.
-        Returns:
-            - Node if the key exists, or
-            - None if it's not found
-        """
+    def __getitem__(self, key: bytes) -> BytesOrNone:
         return self.nodes.get(key, None)
 
-    def set_value(self, key: bytes, value: bytes) -> bool:
-        """
-        Put a leaf key,value in the store. Overwrite the value for existing keys.
-        Returns:
-            - True if the write succeeds
-            - False if it doesn't
-        """
-        self.values[key] = value
-        return True
-
-    def set_node(self, key: bytes, value: bytes) -> bool:
-        """
-        Put a node value in the store. Overwrite the value for existing keys.
-        Returns:
-            - True if the write succeeds
-            - False if it doesn't
-        """
+    def __setitem__(self, key: bytes, value: bytes) -> bool:
         self.nodes[key] = value
         return True
 
-    def delete_value(self, key) -> bool:
-        """
-        Delete a leaf value
-         Returns:
-            - True if the delete succeeds
-            - False if it doesn't
-        """
-        if key not in self.values:
-            return False
-        del self.values[key]
-        return True
-
-    def delete_node(self, key) -> bool:
-        """
-        Delete a node
-         Returns:
-            - True if the delete succeeds
-            - False if it doesn't
-        """
+    def delete(self, key: bytes) -> bool:
         if key not in self.nodes:
             return False
         del self.nodes[key]
+        return True
+
+
+class TreeMemoryStore(TreeMapStore):
+    nodes: TreeMemoryNodes
+    values: dict
+
+    def __init__(self):
+        self.nodes = TreeMemoryNodes()
+        self.values = {}
+
+    def __getitem__(self, key: bytes) -> BytesOrNone:
+        return self.values.get(key, None)
+
+    def __setitem__(self, key: bytes, value: bytes) -> bool:
+        self.values[key] = value
+        return True
+
+    def delete(self, key: bytes) -> bool:
+        if key not in self.values:
+            return False
+        del self.values[key]
         return True

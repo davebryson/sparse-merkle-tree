@@ -1,12 +1,21 @@
+from smt.proof import verify_proof
 from smt.tree import SparseMerkleTree
 from smt.utils import DEFAULTVALUE, PLACEHOLDER
-from smt.proof import verify_proof
+
+
+def big_test(tree, size: int):
+    import secrets
+
+    for i in range(size):
+        k = secrets.token_bytes(10)
+        v = bytes(f"hello{i}", "utf-8")
+        tree.update(k, v)
 
 
 def test_tree_basics():
     tree = SparseMerkleTree()
 
-    assert DEFAULTVALUE == tree.get(b"c")
+    assert DEFAULTVALUE == tree[b"c"]
 
     root1 = tree.update(b"a", b"a1")
     assert 32 == len(root1)
@@ -21,41 +30,41 @@ def test_tree_basics():
     assert 32 == len(rootn)
     assert root1 != rootn
 
-    assert b"a1" == tree.get(b"a")
-    assert b"b1" == tree.get(b"b")
-    assert b"c1" == tree.get(b"c")
-    assert b"d1" == tree.get(b"d")
-    assert b"e1" == tree.get(b"e")
-    assert b"f1" == tree.get(b"f")
-    assert b"" == tree.get(b"nope")
+    assert b"a1" == tree[b"a"]
+    assert b"b1" == tree[b"b"]
+    assert b"c1" == tree[b"c"]
+    assert b"d1" == tree[b"d"]
+    assert b"e1" == tree[b"e"]
+    assert b"f1" == tree[b"f"]
+    assert b"" == tree[b"nope"]
 
     rootn1 = tree.delete(b"c")
     assert 32 == len(rootn1)
 
-    assert DEFAULTVALUE == tree.get(b"c")
-    assert b"a1" == tree.get(b"a")
-    assert b"b1" == tree.get(b"b")
-    assert b"d1" == tree.get(b"d")
-    assert b"e1" == tree.get(b"e")
-    assert b"f1" == tree.get(b"f")
+    assert DEFAULTVALUE == tree[b"c"]
+    assert b"a1" == tree[b"a"]
+    assert b"b1" == tree[b"b"]
+    assert b"d1" == tree[b"d"]
+    assert b"e1" == tree[b"e"]
+    assert b"f1" == tree[b"f"]
 
     # has it...
-    assert tree.has(b"e")
+    assert b"e" in tree
 
     # update existing key
     rootn2 = tree.update(b"b", b"b11")
     assert 32 == len(rootn2)
     assert rootn2 != rootn1
-    assert b"b11" == tree.get(b"b")
+    assert b"b11" == tree[b"b"]
 
     # test updating a key still allows getting values from old roots
     rootn3 = tree.update(b"b", b"b111")
-    assert b"b111" == tree.get(b"b")
+    assert b"b111" == tree[b"b"]
     assert rootn3 != rootn2
 
     # test you can delete a key
     assert len(tree.delete(b"a")) > 0
-    assert DEFAULTVALUE == tree.get(b"a")
+    assert DEFAULTVALUE == tree[b"a"]
 
 
 def test_proofs():
@@ -88,7 +97,7 @@ def test_bulk():
 
     # Check it's there
     for k, v in data:
-        assert v == tree.get(k)
+        assert v == tree[k]
 
     # Check proofs
     root = tree.root
@@ -102,7 +111,7 @@ def test_bulk():
         assert tree.delete(k) != None
 
     # Check random value is deleted
-    assert b"" == tree.get(data[4][0])
+    assert b"" == tree[data[4][0]]
 
 
 def make_random_data(size=500):

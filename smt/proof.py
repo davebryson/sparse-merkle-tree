@@ -1,22 +1,30 @@
 """
+module implementation of Merkle proofs
 """
+from typing import List
+
 from .utils import (
+    DEFAULTVALUE,
     DEPTH,
     KEYSIZE,
-    create_leaf,
-    digest,
     LEAF,
-    parse_leaf,
-    get_bit,
-    create_node,
-    DEFAULTVALUE,
     PLACEHOLDER,
     RIGHT,
+    create_leaf,
+    create_node,
+    digest,
+    get_bit,
+    parse_leaf,
 )
 
 
 class SparseMerkleProof:
-    def __init__(self, sidenodes, non_membership_leafdata, siblingdata):
+    def __init__(
+        self,
+        sidenodes: List[bytes],
+        non_membership_leafdata: bytes,
+        siblingdata: bytes,
+    ):
         self.sidenodes = sidenodes
         self.non_membership_leafdata = non_membership_leafdata
         self.sibling_data = siblingdata
@@ -24,7 +32,7 @@ class SparseMerkleProof:
     def sanity_check(self):
         if (
             len(self.sidenodes) > DEPTH
-            or self.non_membership_leafdata != None
+            or self.non_membership_leafdata is not None
             and len(self.non_membership_leafdata)
             != len(LEAF) + KEYSIZE + KEYSIZE
         ):
@@ -42,13 +50,13 @@ class SparseMerkleProof:
         return True
 
 
-def verify_proof(proof, root, key, value):
+def verify_proof(
+    proof: SparseMerkleProof, root: bytes, key: bytes, value: bytes
+) -> bool:
     path = digest(key)
 
     if not proof.sanity_check():
         return False
-
-    current_hash = None
 
     if value == DEFAULTVALUE:
         if not proof.non_membership_leafdata:
