@@ -39,12 +39,6 @@ class SparseMerkleTree:
         self.root = root
         self.store = store
 
-    def root_as_bytes(self) -> bytes:
-        return self.root
-
-    def root_as_hex(self) -> str:
-        return f"0x{self.root.hex()}"
-
     def __getitem__(self, key: bytes) -> bytes:
         """
         :param key: key within the tree
@@ -92,7 +86,9 @@ class SparseMerkleTree:
 
             if err is not None and err == KeyAlreadyEmpty:
                 return root
-            elif not self.store.delete(path):
+            try:
+                del self.store[path]
+            except KeyError:
                 return None
         else:
             new_root = self._update_with_sidenodes(
@@ -113,13 +109,10 @@ class SparseMerkleTree:
 
         return self.update(key, DEFAULTVALUE, root)
 
-    def prove(self, key: bytes, root: bytes = None) -> SparseMerkleProof:
-        return self._proof(key, root, False)
-
-    def prove_updatable(
-        self, key: bytes, root: bytes = None
+    def prove(
+        self, key: bytes, root: bytes = None, updatable: bool = False
     ) -> SparseMerkleProof:
-        return self._proof(key, root, True)
+        return self._proof(key, root, is_updatable=updatable)
 
     def _get_sidenodes(
         self, path: bytes, root: bytes, with_sibling_data: bool = False
@@ -211,11 +204,11 @@ class SparseMerkleTree:
             if old_value_hash == value_hash:
                 return self.root
 
-            self.store.nodes.delete(path_nodes[0])
-            self.store.delete(path)
+            del self.store.nodes[path_nodes[0]]
+            del self.store[path]
 
         for val in path_nodes[1:]:
-            self.store.nodes.delete(val)
+            del self.store.nodes[val]
 
         offset = DEPTH - len(side_nodes)
         for i in range(DEPTH):
@@ -256,7 +249,9 @@ class SparseMerkleTree:
 
         # Remove all orphans
         for val in path_nodes:
-            if not self.store.nodes.delete(val):
+            try:
+                del self.store.nodes[val]
+            except KeyError:
                 return None, None
 
         current_hash = None

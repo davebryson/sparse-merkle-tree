@@ -69,5 +69,4 @@ def count_common_prefix(a: bytes, b: bytes) -> int:
 
 # lil helper
 def show_bits(value: bytes) -> str:
-    x = [bin(byte) for byte in value]
-    return f"{x}"
+    return f"{[bin(byte) for byte in value]}"

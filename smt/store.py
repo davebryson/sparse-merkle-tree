@@ -19,23 +19,18 @@ class TreeMapNodes(ABC):
         pass
 
     @abstractmethod
-    def __setitem__(self, key: bytes, value: bytes) -> bool:
+    def __setitem__(self, key: bytes, value: bytes):
         """
         Put a node in the store, overwriting an existing path.
 
         :param key: path to node
         :param value: value to place within tree
-        :return: whether operation was successful
         """
 
         pass
 
     @abstractmethod
-    def delete(self, key: bytes) -> bool:
-        """
-        :return: whether delete was successful
-        """
-
+    def __delitem__(self, key: bytes) -> bool:
         pass
 
 
@@ -52,23 +47,18 @@ class TreeMapStore(ABC):
         pass
 
     @abstractmethod
-    def __setitem__(self, key: bytes, value: bytes) -> bool:
+    def __setitem__(self, key: bytes, value: bytes):
         """
         Put a key-value pair in the store as a leaf node, overwriting an existing path.
 
         :param key: path to node
         :param value: value to place within tree
-        :return: whether operation was successful
         """
 
         pass
 
     @abstractmethod
-    def delete(self, key: bytes) -> bool:
-        """
-        :return: whether delete was successful
-        """
-
+    def __delitem__(self, key: bytes) -> bool:
         pass
 
 
@@ -81,15 +71,13 @@ class TreeMemoryNodes(TreeMapNodes):
     def __getitem__(self, key: bytes) -> BytesOrNone:
         return self.nodes.get(key, None)
 
-    def __setitem__(self, key: bytes, value: bytes) -> bool:
+    def __setitem__(self, key: bytes, value: bytes):
         self.nodes[key] = value
-        return True
 
-    def delete(self, key: bytes) -> bool:
+    def __delitem__(self, key: bytes):
         if key not in self.nodes:
-            return False
+            raise KeyError(f"path {key} not in tree")
         del self.nodes[key]
-        return True
 
 
 class TreeMemoryStore(TreeMapStore):
@@ -103,12 +91,10 @@ class TreeMemoryStore(TreeMapStore):
     def __getitem__(self, key: bytes) -> BytesOrNone:
         return self.values.get(key, None)
 
-    def __setitem__(self, key: bytes, value: bytes) -> bool:
+    def __setitem__(self, key: bytes, value: bytes):
         self.values[key] = value
-        return True
 
-    def delete(self, key: bytes) -> bool:
+    def __delitem__(self, key: bytes):
         if key not in self.values:
-            return False
+            raise KeyError(f"path {key} not in tree")
         del self.values[key]
-        return True
