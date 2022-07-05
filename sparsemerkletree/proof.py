@@ -1,7 +1,7 @@
 """
 module implementation of Merkle proofs
 """
-from typing import List
+from typing import Sequence
 
 from .utils import (
     DEFAULTVALUE,
@@ -21,31 +21,31 @@ from .utils import (
 class SparseMerkleProof:
     def __init__(
         self,
-        sidenodes: List[bytes],
+        side_nodes: Sequence[bytes],
         non_membership_leafdata: bytes,
-        siblingdata: bytes,
+        sibling_data: bytes,
     ):
-        self.sidenodes = sidenodes
+        self.side_nodes = side_nodes
         self.non_membership_leafdata = non_membership_leafdata
-        self.sibling_data = siblingdata
+        self.sibling_data = sibling_data
 
     def sanity_check(self):
         if (
-            len(self.sidenodes) > DEPTH
+            len(self.side_nodes) > DEPTH
             or self.non_membership_leafdata is not None
             and len(self.non_membership_leafdata)
             != len(LEAF) + KEYSIZE + KEYSIZE
         ):
             return False
 
-        for sn in self.sidenodes:
+        for sn in self.side_nodes:
             if len(sn) != KEYSIZE:
                 return False
 
         if self.sibling_data:
             sibhash = digest(self.sibling_data)
-            if self.sidenodes and len(self.sidenodes) > 0:
-                if self.sidenodes[0] != sibhash:
+            if self.side_nodes and len(self.side_nodes) > 0:
+                if self.side_nodes[0] != sibhash:
                     return False
         return True
 
@@ -70,8 +70,8 @@ def verify_proof(
         value_hash = digest(value)
         current_hash, _current_data = create_leaf(path, value_hash)
 
-    for i, node in enumerate(proof.sidenodes):
-        if get_bit(len(proof.sidenodes) - 1 - i, path) == RIGHT:
+    for i, node in enumerate(proof.side_nodes):
+        if get_bit(len(proof.side_nodes) - 1 - i, path) == RIGHT:
             current_hash, _current_data = create_node(node, current_hash)
         else:
             current_hash, _current_data = create_node(current_hash, node)

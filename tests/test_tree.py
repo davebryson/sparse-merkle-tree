@@ -1,3 +1,7 @@
+from typing import Dict
+
+import pytest
+
 from sparsemerkletree import SparseMerkleTree
 from sparsemerkletree.proof import verify_proof
 from sparsemerkletree.utils import DEFAULTVALUE, PLACEHOLDER
@@ -14,10 +18,10 @@ def test_tree_basics():
     assert len(root_0) == 32
     assert root_0 != PLACEHOLDER
 
-    assert tree.set(b"b", b"b1")
-    assert tree.set(b"c", b"c1")
-    assert tree.set(b"d", b"d1")
-    assert tree.set(b"e", b"e1")
+    tree[b"b"] = b"b1"
+    tree[b"c"] = b"c1"
+    tree[b"d"] = b"d1"
+    tree[b"e"] = b"e1"
 
     tree[b"f"] = b"f1"
     root_1 = tree.root
@@ -105,44 +109,33 @@ def test_proofs():
     assert verify_proof(proof_3, root, key=b"c", value=DEFAULTVALUE)
 
 
-def test_bulk():
-    data = make_random_data()
-    tree = SparseMerkleTree()
+def test_bulk(data):
+    tree = SparseMerkleTree.from_data(data)
 
-    # Add data
-    for k, v in data:
-        tree[k] = v
-        assert tree.root
+    assert tree == data
 
-    # Check it's there
-    for k, v in data:
-        assert tree[k] == v
-
-    # Check proofs
     root = tree.root
-    for k, v in data:
-        proof = tree.prove(k)
+    for key, value in data.items():
+        proof = tree.prove(key)
 
         assert proof.sanity_check()
-        assert verify_proof(proof, root, key=k, value=v)
+        assert verify_proof(proof, root, key=key, value=value)
 
-    # Delete it
-    for k, _ in data:
-        del tree[k]
+    for key in data:
+        del tree[key]
         assert tree.root is not None
 
-    # Check random value is deleted
-    assert tree[data[4][0]] == b""
+    assert all(tree[key] == b"" for key in data)
 
 
-def make_random_data(size: int = 500):
+@pytest.fixture
+def data(size: int = 500) -> Dict[bytes, bytes]:
     import secrets
     import random
 
-    return [
-        (
-            secrets.token_bytes(random.randint(10, 30)),
-            secrets.token_bytes(random.randint(30, 500)),
+    return {
+        secrets.token_bytes(random.randint(10, 30)): secrets.token_bytes(
+            random.randint(30, 500)
         )
         for _ in range(size)
-    ]
+    }
