@@ -58,9 +58,10 @@ class SparseMerkleTree:
     def __contains__(self, key: bytes) -> bool:
         return self[key] != DEFAULTVALUE
 
-    def update(
-        self, key: bytes, value: bytes, root: bytes = None
-    ) -> BytesOrNone:
+    def __setitem__(self, key: bytes, value: bytes):
+        self.set(key, value)
+
+    def set(self, key: bytes, value: bytes, root: bytes = None) -> BytesOrNone:
         """
         :param key: path to node to update
         :param value: value to place within tree
@@ -100,6 +101,9 @@ class SparseMerkleTree:
 
         return new_root
 
+    def __delitem__(self, key: bytes):
+        self.delete(key)
+
     def delete(self, key: bytes, root: bytes = None) -> bytes:
         """
         :param key: path to node to delete
@@ -107,7 +111,7 @@ class SparseMerkleTree:
         :return: new root path
         """
 
-        return self.update(key, DEFAULTVALUE, root)
+        return self.set(key, DEFAULTVALUE, root)
 
     def prove(
         self, key: bytes, root: bytes = None, updatable: bool = False
