@@ -90,15 +90,11 @@ class SparseMerkleTree:
             root = self.root
 
         path = digest(key)
-        side_nodes, path_nodes, old_leaf_data, _sibling_data = self._side_nodes(
-            path, root
-        )
+        side_nodes, path_nodes, old_leaf_data, _sibling_data = self._side_nodes(path, root)
 
         # If the value is the None (defaultValue) then do a delete for the key
         if value == DEFAULTVALUE:
-            new_root, err = self._delete_with_side_nodes(
-                path, side_nodes, path_nodes, old_leaf_data
-            )
+            new_root, err = self._delete_with_side_nodes(path, side_nodes, path_nodes, old_leaf_data)
 
             if err is not None and err == KeyAlreadyEmpty:
                 return root
@@ -107,9 +103,7 @@ class SparseMerkleTree:
             except KeyError:
                 return None
         else:
-            new_root = self._update_with_side_nodes(
-                path, value, side_nodes, path_nodes, old_leaf_data
-            )
+            new_root = self._update_with_side_nodes(path, value, side_nodes, path_nodes, old_leaf_data)
 
         if tree_root:
             self.root = new_root
@@ -128,9 +122,7 @@ class SparseMerkleTree:
 
         return self.set(key, DEFAULTVALUE, root)
 
-    def prove(
-        self, key: bytes, root: bytes = None, updatable: bool = False
-    ) -> SparseMerkleProof:
+    def prove(self, key: bytes, root: bytes = None, updatable: bool = False) -> SparseMerkleProof:
         return self._proof(key, root, is_updatable=updatable)
 
     def __eq__(self, other: Mapping) -> bool:
@@ -222,13 +214,9 @@ class SparseMerkleTree:
 
         if common_prefix_count != DEPTH:
             if get_bit(common_prefix_count, path) == RIGHT:
-                current_hash, current_data = create_node(
-                    path_nodes[0], current_data
-                )
+                current_hash, current_data = create_node(path_nodes[0], current_data)
             else:
-                current_hash, current_data = create_node(
-                    current_data, path_nodes[0]
-                )
+                current_hash, current_data = create_node(current_data, path_nodes[0])
 
             self.store.nodes[current_hash] = current_data
             current_data = current_hash
@@ -245,10 +233,7 @@ class SparseMerkleTree:
         offset = DEPTH - len(side_nodes)
         for layer in range(DEPTH):
             if layer - offset < 0:
-                if (
-                    common_prefix_count != DEPTH
-                    and common_prefix_count > DEPTH - 1 - layer
-                ):
+                if common_prefix_count != DEPTH and common_prefix_count > DEPTH - 1 - layer:
                     side_node = PLACEHOLDER
                 else:
                     continue
@@ -256,13 +241,9 @@ class SparseMerkleTree:
                 side_node = side_nodes[layer - offset]
 
             if get_bit(DEPTH - 1 - layer, path) == RIGHT:
-                current_hash, current_data = create_node(
-                    side_node, current_data
-                )
+                current_hash, current_data = create_node(side_node, current_data)
             else:
-                current_hash, current_data = create_node(
-                    current_data, side_node
-                )
+                current_hash, current_data = create_node(current_data, side_node)
 
             self.store.nodes[current_hash] = current_data
             current_data = current_hash
@@ -316,13 +297,9 @@ class SparseMerkleTree:
                 non_placeholder_reached = True
 
             if get_bit(len(side_nodes) - 1 - index, path) == RIGHT:
-                current_hash, current_data = create_node(
-                    side_node, current_data
-                )
+                current_hash, current_data = create_node(side_node, current_data)
             else:
-                current_hash, current_data = create_node(
-                    current_data, side_node
-                )
+                current_hash, current_data = create_node(current_data, side_node)
 
             self.store.nodes[current_hash] = current_data
             current_data = current_hash
@@ -332,9 +309,7 @@ class SparseMerkleTree:
 
         return current_hash, None
 
-    def _proof(
-        self, key: bytes, root: bytes, is_updatable: bool = False
-    ) -> SparseMerkleProof:
+    def _proof(self, key: bytes, root: bytes, is_updatable: bool = False) -> SparseMerkleProof:
         if root is None:
             root = self.root
 
@@ -357,6 +332,4 @@ class SparseMerkleTree:
             if path != actual_path:
                 non_membership_leaf_data = old_leaf_data
 
-        return SparseMerkleProof(
-            non_empty_side_nodes, non_membership_leaf_data, sibling_data
-        )
+        return SparseMerkleProof(non_empty_side_nodes, non_membership_leaf_data, sibling_data)

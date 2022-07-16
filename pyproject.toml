@@ -8,7 +8,7 @@ license = { file = "LICENSE" }
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: GNU Affero General Public License",
     "Programming Language :: Python :: 3.9",
 ]
 keywords = ["sparse", "merkle", "tree"]
@@ -20,7 +20,7 @@ style = ["black"]
 test = ["pytest"]
 
 [project.urls]
-Source = "https://github.com/davebryson/sparse-merkle-tree"
+Source = "https://github.com/zacharyburnett/sparsemerkletree"
 
 [build-system]
 requires = ["setuptools", "setuptools-scm", "wheel"]
@@ -34,7 +34,7 @@ include-package-data = true
 [tool.setuptools.packages.find]
 
 [tool.black]
-line-length = 80
+line-length = 127
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

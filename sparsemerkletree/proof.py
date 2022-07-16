@@ -33,8 +33,7 @@ class SparseMerkleProof:
         if (
             len(self.side_nodes) > DEPTH
             or self.non_membership_leafdata is not None
-            and len(self.non_membership_leafdata)
-            != len(LEAF) + KEYSIZE + KEYSIZE
+            and len(self.non_membership_leafdata) != len(LEAF) + KEYSIZE + KEYSIZE
         ):
             return False
 
@@ -50,9 +49,7 @@ class SparseMerkleProof:
         return True
 
 
-def verify_proof(
-    proof: SparseMerkleProof, root: bytes, key: bytes, value: bytes
-) -> bool:
+def verify_proof(proof: SparseMerkleProof, root: bytes, key: bytes, value: bytes) -> bool:
     path = digest(key)
 
     if not proof.sanity_check():
