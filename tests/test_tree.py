@@ -1,118 +1,141 @@
-from smt.tree import SparseMerkleTree
-from smt.utils import DEFAULTVALUE, PLACEHOLDER
-from smt.proof import verify_proof
+from typing import Dict
+
+import pytest
+
+from sparsemerkletree import SparseMerkleTree
+from sparsemerkletree.proof import verify_proof
+from sparsemerkletree.utils import DEFAULTVALUE, PLACEHOLDER
 
 
 def test_tree_basics():
     tree = SparseMerkleTree()
 
-    assert DEFAULTVALUE == tree.get(b"c")
+    assert tree[b"c"] == DEFAULTVALUE
 
-    root1 = tree.update(b"a", b"a1")
-    assert 32 == len(root1)
-    assert root1 != PLACEHOLDER
+    tree[b"a"] = b"a1"
+    root_0 = tree.root
 
-    assert tree.update(b"b", b"b1")
-    assert tree.update(b"c", b"c1")
-    assert tree.update(b"d", b"d1")
-    assert tree.update(b"e", b"e1")
-    rootn = tree.update(b"f", b"f1")
+    assert len(root_0) == 32
+    assert root_0 != PLACEHOLDER
 
-    assert 32 == len(rootn)
-    assert root1 != rootn
+    tree[b"b"] = b"b1"
+    tree[b"c"] = b"c1"
+    tree[b"d"] = b"d1"
+    tree[b"e"] = b"e1"
 
-    assert b"a1" == tree.get(b"a")
-    assert b"b1" == tree.get(b"b")
-    assert b"c1" == tree.get(b"c")
-    assert b"d1" == tree.get(b"d")
-    assert b"e1" == tree.get(b"e")
-    assert b"f1" == tree.get(b"f")
-    assert b"" == tree.get(b"nope")
+    tree[b"f"] = b"f1"
+    root_1 = tree.root
 
-    rootn1 = tree.delete(b"c")
-    assert 32 == len(rootn1)
+    assert len(root_1) == 32
+    assert root_1 != root_0
 
-    assert DEFAULTVALUE == tree.get(b"c")
-    assert b"a1" == tree.get(b"a")
-    assert b"b1" == tree.get(b"b")
-    assert b"d1" == tree.get(b"d")
-    assert b"e1" == tree.get(b"e")
-    assert b"f1" == tree.get(b"f")
+    assert tree[b"a"] == b"a1"
+    assert tree[b"b"] == b"b1"
+    assert tree[b"c"] == b"c1"
+    assert tree[b"d"] == b"d1"
+    assert tree[b"e"] == b"e1"
+    assert tree[b"f"] == b"f1"
+    assert tree[b"nope"] == b""
+
+    del tree[b"c"]
+    root_2 = tree.root
+
+    assert len(root_2) == 32
+
+    assert tree[b"c"] == DEFAULTVALUE
+    assert tree[b"a"] == b"a1"
+    assert tree[b"b"] == b"b1"
+    assert tree[b"d"] == b"d1"
+    assert tree[b"e"] == b"e1"
+    assert tree[b"f"] == b"f1"
 
     # has it...
-    assert tree.has(b"e")
+    assert b"e" in tree
 
     # update existing key
-    rootn2 = tree.update(b"b", b"b11")
-    assert 32 == len(rootn2)
-    assert rootn2 != rootn1
-    assert b"b11" == tree.get(b"b")
+    tree[b"b"] = b"b11"
+    root_3 = tree.root
+
+    assert len(root_3) == 32
+    assert root_3 != root_2
+    assert tree[b"b"] == b"b11"
 
     # test updating a key still allows getting values from old roots
-    rootn3 = tree.update(b"b", b"b111")
-    assert b"b111" == tree.get(b"b")
-    assert rootn3 != rootn2
+    tree[b"b"] = b"b111"
+    root_4 = tree.root
+
+    assert tree[b"b"] == b"b111"
+    assert root_4 != root_3
 
     # test you can delete a key
-    assert len(tree.delete(b"a")) > 0
-    assert DEFAULTVALUE == tree.get(b"a")
+    del tree[b"a"]
+
+    assert len(tree.root) > 0
+    assert tree[b"a"] == DEFAULTVALUE
 
 
 def test_proofs():
     tree = SparseMerkleTree()
-    assert tree.update(b"b", b"b1")
-    assert tree.update(b"c", b"c1")
-    assert tree.update(b"d", b"d1")
-    assert tree.update(b"e", b"e1")
 
-    assert tree.delete(b"c")
+    tree[b"b"] = b"b1"
 
-    root = tree.update(b"f", b"f1")
+    assert tree.root
 
-    proof = tree.prove(b"d")
-    assert verify_proof(proof, root, b"d", b"d1")
+    tree[b"c"] = b"c1"
 
-    proof1 = tree.prove(b"np")
-    assert not verify_proof(proof1, root, b"np", b"np1")
+    assert tree.root
 
-    proof2 = tree.prove(b"c")
-    assert verify_proof(proof2, root, b"c", DEFAULTVALUE)
+    tree[b"d"] = b"d1"
 
+    assert tree.root
 
-def test_bulk():
-    data = make_random_data()
-    tree = SparseMerkleTree()
-    # Add data
-    for k, v in data:
-        assert tree.update(k, v)
+    tree[b"e"] = b"e1"
 
-    # Check it's there
-    for k, v in data:
-        assert v == tree.get(k)
+    assert tree.root
 
-    # Check proofs
+    del tree[b"c"]
+
+    assert tree.root
+
+    tree[b"f"] = b"f1"
     root = tree.root
-    for k, v in data:
-        proof = tree.prove(k)
+
+    proof_1 = tree.prove(b"d")
+    proof_2 = tree.prove(b"np")
+    proof_3 = tree.prove(b"c")
+
+    assert verify_proof(proof_1, root, key=b"d", value=b"d1")
+    assert not verify_proof(proof_2, root, key=b"np", value=b"np1")
+    assert verify_proof(proof_3, root, key=b"c", value=DEFAULTVALUE)
+
+
+def test_bulk(data):
+    tree = SparseMerkleTree.from_data(data)
+
+    assert tree == data
+
+    root = tree.root
+    for key, value in data.items():
+        proof = tree.prove(key)
+
         assert proof.sanity_check()
-        assert verify_proof(proof, root, k, v)
+        assert verify_proof(proof, root, key=key, value=value)
 
-    # Delete it
-    for k, _ in data:
-        assert tree.delete(k) != None
+    for key in data:
+        del tree[key]
+        assert tree.root is not None
 
-    # Check random value is deleted
-    assert b"" == tree.get(data[4][0])
+    assert all(tree[key] == b"" for key in data)
 
 
-def make_random_data(size=500):
+@pytest.fixture
+def data(size: int = 500) -> Dict[bytes, bytes]:
     import secrets
     import random
 
-    return [
-        (
-            secrets.token_bytes(random.randint(10, 30)),
-            secrets.token_bytes(random.randint(30, 500)),
+    return {
+        secrets.token_bytes(random.randint(10, 30)): secrets.token_bytes(
+            random.randint(30, 500)
         )
         for _ in range(size)
-    ]
+    }
