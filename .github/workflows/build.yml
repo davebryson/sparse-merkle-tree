@@ -26,6 +26,8 @@ jobs:
           name: build-${{ steps.version.outputs.version }}
           path: "dist/"
       - uses: xresloader/upload-to-github-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           file: "dist/*"
   publish:
