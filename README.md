@@ -19,7 +19,7 @@ from [Dave Bryson's Python implementation](https://github.com/davebryson/sparse-
 
 ## Installation
 
-0. [dowload and install Python](https://www.python.org/downloads)
+0. [download and install Python](https://www.python.org/downloads)
 1. use `pip` to install `sparsemerkletree` from PyPI:
     ```shell
     pip install sparsemerkletree
