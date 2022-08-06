@@ -1,0 +1,55 @@
+name: build
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    name: build package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.4.2
+      - uses: actions/setup-python@v4.1.0
+        with:
+          python-version: '3.x'
+      - uses: mtkennerly/dunamai-action@v1.1.0
+        id: version
+      - uses: actions/cache@v3.0.5
+        with:
+          path: ${{ env.pythonLocation }}
+          key: build-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml', 'setup.*') }}
+      - run: pip wheel . --no-deps -w dist
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: build-${{ steps.version.outputs.version }}
+          path: "dist/"
+      - uses: xresloader/upload-to-github-release@v1.3.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: "dist/*"
+  publish:
+    name: publish package
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+      - uses: actions/setup-python@v4.1.0
+        with:
+          python-version: '3.x'
+      - uses: mtkennerly/dunamai-action@v1.1.0
+        id: version
+      - uses: actions/cache@v3.0.5
+        with:
+          path: ${{ env.pythonLocation }}
+          key: build-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml', 'setup.*') }}
+      - uses: actions/download-artifact@v2.21.1
+        with:
+          name: build-${{ steps.version.outputs.version }}
+          path: "dist/"
+      - uses: pypa/gh-action-pypi-publish@v1.5.0
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}

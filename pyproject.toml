@@ -1,6 +1,40 @@
+[project]
+name = "sparsemerkletree"
+description = "a Sparse Merkle Tree for a key / value map"
+authors = [{ name = "Zach Burnett", email = "zachary.r.burnett@gmail.com" }, { name = "Dave Bryson" }]
+readme = "README.md"
+requires-python = ">= 3.9"
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.9",
+]
+keywords = ["sparse", "merkle", "tree"]
+dependencies = []
+dynamic = ["version"]
+
+[project.optional-dependencies]
+style = ["black"]
+test = ["pytest"]
+
+[project.urls]
+Source = "https://github.com/zacharyburnett/sparsemerkletree"
+
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools", "setuptools-scm", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools_scm]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+
 [tool.black]
-line-length = 80
+line-length = 127
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
